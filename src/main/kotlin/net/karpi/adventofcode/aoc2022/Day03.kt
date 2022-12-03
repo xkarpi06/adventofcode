@@ -25,13 +25,12 @@ class Day03 {
             var acc = 0
             measurements.forEach { rucksack ->
                 // split into 2 halves
-                val data = listOf(rucksack.substring(0, rucksack.length / 2), rucksack.substring(rucksack.length / 2))
-//                println(data)
-                data[0].forEachIndexed { i, it ->
-                    if (it in data[1]) {
+                val twoHalves = listOf(rucksack.substring(0, rucksack.length / 2), rucksack.substring(rucksack.length / 2))
+                twoHalves[0].forEachIndexed { i, it ->
+                    if (it in twoHalves[1]) {
 //                        println("matching $it, ${it.myVal()}")
                         acc += it.priority()
-                        return@forEach
+                        return@forEach // continue
                     }
                 }
             }
@@ -45,14 +44,14 @@ class Day03 {
         private fun part2(measurements: List<String>) {
             var acc = 0
             for (i in 0 until measurements.size step 3) {
-                val ruc = listOf(measurements[i], measurements[i + 1], measurements[i + 2])
-//                println(ruc)
-                var go = true
-                ruc[0].forEachIndexed { i, it ->
-                    if (it in ruc[1] && it in ruc[2] && go) {
+                val rucksacks = listOf(measurements[i], measurements[i + 1], measurements[i + 2])
+                run findCommon@{
+                    rucksacks[0].forEachIndexed { i, it ->
+                        if (it in rucksacks[1] && it in rucksacks[2]) {
 //                        println("matching $it, ${it.myVal()}")
-                        acc += it.priority()
-                        go = false
+                            acc += it.priority()
+                            return@findCommon // break
+                        }
                     }
                 }
             }
