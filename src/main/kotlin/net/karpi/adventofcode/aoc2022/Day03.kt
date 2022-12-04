@@ -5,6 +5,8 @@ import net.karpi.adventofcode.helpers.InputLoader
 
 /**
  * Created by xkarpi06 on 03.12.2022
+ *
+ * time: 29 min (16 min)
  */
 class Day03 {
 
