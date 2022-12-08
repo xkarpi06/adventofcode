@@ -5,6 +5,10 @@ package net.karpi.adventofcode.helpers
  */
 class InputLoader(private val year: AoCYear) {
 
+    fun loadInts2(resource: String): List<List<Int>> {
+        return loadStrings(resource).map { it.map { it.code - 48 }}
+    }
+
     fun loadInts(resource: String): List<Int> {
         return loadStrings(resource).map { it.toInt() }
     }
