@@ -1,7 +1,5 @@
 package net.karpi.adventofcode.aoc2022
 
-import net.karpi.adventofcode.aoc2022.helper.Dir
-import net.karpi.adventofcode.aoc2022.helper.File
 import net.karpi.adventofcode.helpers.AoCYear
 import net.karpi.adventofcode.helpers.InputLoader
 
@@ -10,9 +8,9 @@ import net.karpi.adventofcode.helpers.InputLoader
  *
  * tried to only record stack of entered dirs and add size of read file to all of them
  * worked for example input, but not real input
- * real input goes in and out of dirs repeatedly...
  *
  * problem was using Map for processed directories, because there were duplicate names in the input...
+ * yep... changed it for List & worked
  *
  * time: ~3 hod + 12 min
  *
@@ -28,45 +26,38 @@ class Day07 {
         fun main(args: Array<String>) {
             val input = InputLoader(AoCYear.AOC_2022).loadStrings("Day07Input")
             val cmdLines = Parser.parseInput(input)
-            part1(cmdLines)
-//            part2(cmdLines)
-        }
-
-        private fun part1(input: List<CmdLine>) {
-            val interpret = Interpreter()
+            val interpreter = Interpreter()
+            val interpreter2 = Interpreter2() // no tree solution
             // skip first instruction
-            input.takeLast(input.size - 1).forEach {
-                interpret.readLine(it)
+            cmdLines.takeLast(input.size - 1).forEach {
+                interpreter.readLine(it)
+                interpreter2.readLine(it) // no tree solution
             }
-            val tree = interpret.getTree()
+            val tree = interpreter.getTree()
             tree.updateSize()
 //            println(tree)
-            val allDirsWithSize = tree.subdirsWithSize()
-            val targetDirs = allDirsWithSize.filter { it.second <= 100000 }
-//            targetDirs.forEach { println(it) }
-            val answer = targetDirs.sumOf { it.second }
-            val rootSize = tree.size
-            val totalDiskSpace = 70_000_000
-            val updateNeeds = 30_000_000
-            val deleteAtLeast = updateNeeds - (totalDiskSpace - rootSize)
-            println("r: $rootSize, d: $deleteAtLeast")
-            val answer2 = allDirsWithSize.filter { it.second > deleteAtLeast }.minByOrNull { it.second }?.second
 
-            println("p1> $answer")
-            println("p2> $answer2")
-            // 1081027 is too low
+            val noTreeSolutionPart1 = interpreter2.getDirs().filter { it.size <= 100_000 }.sumOf { it.size }
+            println("ntp1> $noTreeSolutionPart1")
+            part1(tree)
+            part2(tree)
         }
 
-//        private fun part2(input: List<CmdLine>) {
-//            var acc = 0
-//            input.forEach {
-//
-//            }
-//            println("p2> TODO ")
-//        }
+        private fun part1(tree: Dir) {
+            val answer = tree.subdirsWithSize().filter { it.second <= 100_000 }.sumOf { it.second }
+            println("p1> $answer")
+        }
+
+        private fun part2(tree: Dir) {
+            val totalDiskSpace = 70_000_000
+            val updateNeeds = 30_000_000
+            val deleteAtLeast = updateNeeds - (totalDiskSpace - tree.size)
+            val answer = tree.subdirsWithSize().filter { it.second > deleteAtLeast }.minByOrNull { it.second }?.second
+
+            println("p2> $answer")
+        }
     }
 
-    // skip first line
     private class Interpreter {
         private val root = Dir("/", null, 0)
         private var currentDir = root
@@ -104,7 +95,7 @@ class Day07 {
         fun getTree() = root
     }
 
-    private sealed class CmdLine {
+    sealed class CmdLine {
 
         sealed class Cmd : CmdLine() {
 
@@ -156,11 +147,3 @@ class Day07 {
         }
     }
 }
-
-//    val root = Dir("/", 0)
-//    root.files.put("a", File("a", 12, root.depth + 1))
-//    root.files.put("b", File("b", 13, root.depth + 1))
-//    root.files.put("c", File("c", 14, root.depth + 1))
-//    root.dirs.put("x", Dir("x", root.depth + 1))
-//    root.dirs["x"]?.let { it.files.put("d", File("d", 15, it.depth + 1)) }
-//    println(root)

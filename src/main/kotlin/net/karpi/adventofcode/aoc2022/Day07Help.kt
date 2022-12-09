@@ -1,4 +1,6 @@
-package net.karpi.adventofcode.aoc2022.helper
+package net.karpi.adventofcode.aoc2022
+
+import java.util.*
 
 // prevents duplications
 class Dir(
@@ -56,40 +58,3 @@ class File(val name: String, val size: Int, val depth: Int) {
         return "$spacing- $name (file, size=$size)"
     }
 }
-
-//private class Interpret {
-//    val dirStack: Stack<DirX> = Stack()
-//    // add dirs to stack & for each file add its size to all directories in stack!
-//    val allDirs: MutableMap<String, DirX> = mutableMapOf()
-//    private var lastIsDuplicate: Boolean = false // TODO: delete probably
-//
-//    // navigate up, down, add file, ...
-//    fun readLine(line: Day07.CmdLine) {
-//        when (line) {
-//            is Day07.CmdLine.Cmd.CdIn -> {
-//                if (line.dir in allDirs.keys) {
-//                    println("Duplication for ${line.dir}")
-//                    lastIsDuplicate = true
-//                } else {
-//                    lastIsDuplicate = false
-//                }
-//                dirStack.push(DirX(line.dir))
-//            }
-//            Day07.CmdLine.Cmd.CdOut -> {
-//                val dir = dirStack.pop()
-//                allDirs.put(dir.name, dir)
-//            }
-//            Day07.CmdLine.Cmd.Ls -> {}
-//            is Day07.CmdLine.Answer.Dir -> {}
-//            is Day07.CmdLine.Answer.File -> dirStack.forEachIndexed { i, it ->
-//                if (!lastIsDuplicate || !(i == dirStack.lastIndex)) {
-//                    it.addFile(line.size)
-//                }
-//            }
-//        }
-//    }
-//
-//    fun getDirs(): Set<DirX> {
-//        return allDirs.values.toSet() + dirStack.toSet()
-//    }
-//}
