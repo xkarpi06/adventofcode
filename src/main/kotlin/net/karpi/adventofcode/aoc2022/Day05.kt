@@ -2,6 +2,7 @@ package net.karpi.adventofcode.aoc2022
 
 import net.karpi.adventofcode.helpers.AoCYear
 import net.karpi.adventofcode.helpers.InputLoader
+import java.util.*
 
 /**
  * Created by xkarpi06 on 05.12.2022
@@ -13,10 +14,8 @@ import net.karpi.adventofcode.helpers.InputLoader
  *   5   02:22:54  19892      0   02:25:13  18739      0
  */
 class Day05 {
-// TODO: clean list im/mutability
 
     companion object {
-
         /**
          * The ship has a giant cargo crane capable of moving crates between stacks.
          */
@@ -32,7 +31,7 @@ class Day05 {
          * After the rearrangement procedure completes, what crate ends up on top of each stack?
          */
         private fun part1(input: List<String>) {
-            craneWork(input, Crane.C9000)
+            craneWork(input, Crane(Crane.Type.C9000))
         }
 
         /**
@@ -40,64 +39,69 @@ class Day05 {
          * After the rearrangement procedure completes, what crate ends up on top of each stack?
          */
         private fun part2(input: List<String>) {
-            craneWork(input, Crane.C9001)
+            craneWork(input, Crane(Crane.Type.C9001))
         }
-
-        private enum class Crane { C9000, C9001 }
 
         private fun craneWork(
             input: List<String>,
             crane: Crane,
         ) {
-            val crates = input.takeWhile { it.isNotEmpty() }.dropLast(1) // last line is only crate order
+            // take crates input and drop last line which is unused stack numbering
+            val crates = input.takeWhile { it.isNotEmpty() }.dropLast(1)
             val instructions = input.takeLastWhile { it.isNotEmpty() }
 
-            var crateStacks = List<MutableList<Char>>(10) { mutableListOf() }
-            crates.forEachIndexed { i, line ->
+            val crateStacks = List<Stack<Char>>(9) { Stack() }
+            // read stacks from bottom up
+            crates.reversed().forEachIndexed { i, line ->
                 val split = line.filterIndexed { j, _ -> j % 4 == 1 }.toCharArray().toList()
-                println(line)
+//                println(line)
                 split.forEachIndexed { k, char ->
-                    if (!char.isWhitespace()) crateStacks[k].add(char)
+                    if (!char.isWhitespace()) crateStacks[k].push(char)
                 }
             }
-            crateStacks = crateStacks.mapNotNull { if (it.isNotEmpty()) it.asReversed() else null }
             instructions.forEach { line ->
                 val (move, from, to) = line.split(" ").filterIndexed { i, _ -> i % 2 == 1 }
-                crateStacks = when (crane) {
-                    Crane.C9000 -> moveCratesOneByOne(crateStacks, move.toInt(), from.toInt() - 1, to.toInt() - 1)
-                    Crane.C9001 -> moveCratesMoreAtATime(crateStacks, move.toInt(), from.toInt() - 1, to.toInt() - 1)
-                }
+                crane.work(crateStacks, Instruction(move.toInt(), from.toInt() - 1, to.toInt() - 1))
             }
             println("result> ${crateStacks.map { it.takeLast(1)[0] }.joinToString("")}")
         }
 
-        private fun moveCratesOneByOne(
-            state: List<MutableList<Char>>,
-            move: Int,
-            from: Int,
-            to: Int
-        ): List<MutableList<Char>> {
-            for (i in 0 until move) {
-                val crate = state[from].takeLast(1)[0]
-                state[from].removeLast()
-                state[to].add(crate)
+    }
+
+    private class Crane(
+        private val type: Type,
+    ) {
+        enum class Type { C9000, C9001 }
+
+        fun work(
+            crateStacks: List<Stack<Char>>,
+            instruction: Instruction,
+        ) {
+            when (type) {
+                Type.C9000 -> workC9000(crateStacks, instruction)
+                Type.C9001 -> workC9001(crateStacks, instruction)
             }
-            return state
         }
 
-        private fun moveCratesMoreAtATime(
-            state: List<MutableList<Char>>,
-            move: Int,
-            from: Int,
-            to: Int
-        ): List<MutableList<Char>> {
-            val crates = state[from].takeLast(move)
-            for (i in 0 until move) {
-                state[from].removeLast()
+        // moves one crate at a time
+        private fun workC9000(stacks: List<Stack<Char>>, i: Instruction) {
+            repeat(i.move) {
+                val crate = stacks[i.from].pop()
+                stacks[i.to].push(crate)
             }
-            state[to].addAll(crates)
-            return state
+        }
+
+        // moves many crates at a time
+        private fun workC9001(stacks: List<Stack<Char>>, i: Instruction) {
+            val crates = stacks[i.from].takeLast(i.move)
+            repeat(i.move) { stacks[i.from].pop() }
+            stacks[i.to].addAll(crates)
         }
     }
 
+    private data class Instruction(
+        val move: Int,
+        val from: Int,
+        val to: Int,
+    )
 }
