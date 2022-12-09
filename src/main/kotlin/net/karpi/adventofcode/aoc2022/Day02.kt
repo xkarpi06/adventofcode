@@ -7,7 +7,11 @@ import net.karpi.adventofcode.helpers.InputLoader
 /**
  * Created by xkarpi06 on 02.12.2022
  *
- * time: 36 min (25+11)
+ * time: 25 min + 11 min (start 6:00)
+ *
+ * stats:
+ * Day       Time   Rank  Score       Time   Rank  Score
+ *   2   00:25:43  10220      0   00:36:30   9871      0
  */
 class Day02 {
 

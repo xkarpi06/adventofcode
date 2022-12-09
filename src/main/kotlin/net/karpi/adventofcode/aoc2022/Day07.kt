@@ -12,7 +12,9 @@ import net.karpi.adventofcode.helpers.InputLoader
  * worked for example input, but not real input
  * real input goes in and out of dirs repeatedly...
  *
- * time: 3 hod + 10 min
+ * problem was using Map for processed directories, because there were duplicate names in the input...
+ *
+ * time: ~3 hod + 12 min
  *
  * stats:
  * Day       Time   Rank  Score       Time   Rank  Score

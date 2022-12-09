@@ -13,7 +13,11 @@ import kotlin.math.max
  *    a) mutable list operations
  *    b) fold to sum values in list
  *
- * time: 40 min
+ * time: 15 min + 25 min
+ *
+ * stats:
+ * Day       Time   Rank  Score       Time   Rank  Score
+ *   1   14:35:46  98164      0   14:59:22  95115      0
  */
 class Day01 {
 
