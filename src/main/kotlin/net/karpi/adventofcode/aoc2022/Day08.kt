@@ -3,6 +3,7 @@ package net.karpi.adventofcode.aoc2022
 import net.karpi.adventofcode.helpers.AoCYear
 import net.karpi.adventofcode.helpers.InputLoader
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by xkarpi06 on 08.12.2022
@@ -12,8 +13,6 @@ import kotlin.math.max
  * stats:
  * Day       Time   Rank  Score       Time   Rank  Score
  *   8   02:05:56  16349      0   02:29:24  13940      0
- *
- * TODO refactor scenicScore()?
  */
 class Day08 {
 
@@ -52,29 +51,27 @@ class Day08 {
         private fun scenicScore(row: Int, col: Int, forest: List<List<Int>>): Int {
             val height = forest[row][col]
             // seen from top
-            val above = forest.take(row).map { it[col] }
-            var scoreUp = above.takeLastWhile { it < height }.size // this does not include the last seen tree :(
-            if (scoreUp < above.size) scoreUp++ // include the last seen tree if edge of forest was not reached
+            var scoreUp = forest.take(row).map { it[col] }.takeLastWhile { it < height }.size + 1 // count last tree
+            scoreUp = min(scoreUp, row) // if edge can be seen, +1 was wrongly added
             // seenFromDown
-            val down = forest.takeLast(forest.lastIndex - row).map { it[col] }
-            var scoreDown = down.takeWhile { it < height }.size
-            if (scoreDown < down.size) scoreDown++ // include the last seen tree if edge of forest was not reached
+            var scoreDown = forest.takeLast(forest.lastIndex - row).map { it[col] }
+                .takeWhile { it < height }.size + 1 // count last tree
+            scoreDown = min(scoreDown, forest.lastIndex - row)
             // seenFromLeft
-            val left = forest[row].take(col)
-            var scoreLeft = left.takeLastWhile { it < height }.size
-            if (scoreLeft < left.size) scoreLeft++ // include the last seen tree if edge of forest was not reached
+            var scoreLeft = forest[row].take(col).takeLastWhile { it < height }.size + 1 // count last tree
+            scoreLeft = min(scoreLeft, col)
             // seenFromRight
-            val right = forest[row].takeLast(forest[row].lastIndex - col)
-            var scoreRight = right.takeWhile { it < height }.size
-            if (scoreRight < right.size) scoreRight++ // include the last seen tree if edge of forest was not reached
+            var scoreRight = forest[row].takeLast(forest[row].lastIndex - col)
+                .takeWhile { it < height }.size + 1 // count last tree
+            scoreRight = min(scoreRight, forest[row].lastIndex - col)
 
             return scoreUp * scoreDown * scoreLeft * scoreRight
         }
 
         private fun isVisible(row: Int, col: Int, forest: List<List<Int>>): Boolean {
             return when {
-                row == 0 || row == forest.lastIndex -> true // first or last row
-                col == 0 || col == forest[row].lastIndex -> true // first or last col
+                row in listOf(0, forest.lastIndex) -> true // first or last row
+                col in listOf(0, forest[row].lastIndex) -> true // first or last col
                 else -> {
                     val height = forest[row][col]
                     // seen from top
