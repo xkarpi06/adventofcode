@@ -6,6 +6,8 @@ import net.karpi.adventofcode.helpers.InputLoader
 /**
  * Created by xkarpi06 on 07.12.2022
  *
+ * Day 7: No Space Left On Device
+ *
  * tried to only record stack of entered dirs and add size of read file to all of them
  * worked for example input, but not real input
  *
@@ -22,44 +24,56 @@ class Day07 {
 
     companion object {
 
+        /**
+         * You browse around the filesystem to assess the situation and save the resulting terminal output (your puzzle
+         * input). For example:
+         */
         @JvmStatic
         fun main(args: Array<String>) {
             val input = InputLoader(AoCYear.AOC_2022).loadStrings("Day07Input")
             val cmdLines = Parser.parseInput(input)
             val interpreter = Interpreter()
-            val interpreter2 = Interpreter2() // no tree solution
+            val ntsInterpreter = NTSInterpreter() // no tree solution
             // skip first instruction
             cmdLines.takeLast(input.size - 1).forEach {
                 interpreter.readLine(it)
-                interpreter2.readLine(it) // no tree solution
+                ntsInterpreter.readLine(it)
             }
             val tree = interpreter.getTree()
             tree.updateSize()
-//            println(tree)
 
-            val noTreeSolutionPart1 = interpreter2.getDirs().filter { it.size <= 100_000 }.sumOf { it.size }
-            println("ntp1> $noTreeSolutionPart1")
+            val ntsPart1 = ntsInterpreter.getDirs().filter { it.size <= 100_000 }.sumOf { it.size }
+            println("ntsp1> $ntsPart1")
             part1(tree)
             part2(tree)
         }
 
-        private fun part1(tree: Dir) {
-            val answer = tree.subdirsWithSize().filter { it.second <= 100_000 }.sumOf { it.second }
+        /**
+         * Find all of the directories with a total size of at most 100000. What is the sum of the total sizes of those
+         * directories?
+         */
+        private fun part1(tree: Directory) {
+            val answer = tree.subDirsWithSize().filter { it.second <= 100_000 }.sumOf { it.second }
             println("p1> $answer")
         }
 
-        private fun part2(tree: Dir) {
+        /**
+         * The total disk space available to the filesystem is 70000000. To run the update, you need unused space of at
+         * least 30000000. Find the smallest directory that, if deleted, would free up enough space on the filesystem to
+         * run the update. What is the total size of that directory?
+         */
+        private fun part2(tree: Directory) {
             val totalDiskSpace = 70_000_000
             val updateNeeds = 30_000_000
             val deleteAtLeast = updateNeeds - (totalDiskSpace - tree.size)
-            val answer = tree.subdirsWithSize().filter { it.second > deleteAtLeast }.minByOrNull { it.second }?.second
+            val answer = tree.subDirsWithSize().filter { it.second > deleteAtLeast }.minByOrNull { it.second }?.second
 
             println("p2> $answer")
         }
     }
 
     private class Interpreter {
-        private val root = Dir("/", null, 0)
+        private val root = Directory("/", null, 0)
         private var currentDir = root
 
         fun readLine(line: CmdLine) {
@@ -81,7 +95,7 @@ class Day07 {
                 }
                 is CmdLine.Answer.Dir -> {
                     currentDir.putDir(
-                        Dir(name = line.name, parent = currentDir, depth = currentDir.depth + 1)
+                        Directory(name = line.name, parent = currentDir, depth = currentDir.depth + 1)
                     )
                 }
                 is CmdLine.Answer.File -> {
@@ -144,6 +158,65 @@ class Day07 {
                     else -> CmdLine.Cmd.Unknown
                 }
             }
+        }
+    }
+
+    /**
+     * Represents directory tree
+     */
+    private class Directory(
+        val name: String,
+        val parent: Directory?, // null for root
+        val depth: Int
+    ) {
+        private val subDirs: MutableMap<String, Directory> = mutableMapOf()
+        private val files: MutableMap<String, File> = mutableMapOf()
+        var size = 0
+            private set
+
+        fun putFile(file: File) {
+            if (file.name !in files.keys) {
+                files[file.name] = file
+            } else {
+                println("duplicate file ${file.name}")
+            }
+        }
+
+        fun putDir(dir: Directory) {
+            if (dir.name !in subDirs.keys) {
+                subDirs[dir.name] = dir
+            } else {
+                println("duplicate dir ${dir.name}")
+            }
+        }
+
+        fun hasSubDir(name: String) = subDirs[name] != null
+        fun subDir(name: String) = subDirs[name]
+        fun updateSize() {
+            subDirs.values.forEach { it.updateSize() }
+            size = files.values.sumOf { it.size } + subDirs.values.sumOf { it.size }
+        }
+
+        fun subDirsWithSize(): List<Pair<String, Int>> {
+            val result = mutableListOf(name to size)
+            subDirs.values.forEach { result += it.subDirsWithSize() }
+            return result
+        }
+
+        override fun toString(): String {
+            val spacing = List(depth) { "  " }.joinToString("")
+            val xxx = if (size <= 100_000) "XXX" else ""
+            val dirStr = "$spacing- $name (dir $xxx, size=$size)"
+            return dirStr +
+                    files.map { "\n${it.value}" }.joinToString("") +
+                    subDirs.map { "\n${it.value}" }.joinToString("")
+        }
+    }
+
+    private class File(val name: String, val size: Int, val depth: Int) {
+        override fun toString(): String {
+            val spacing = List(depth) { "  " }.joinToString("")
+            return "$spacing- $name (file, size=$size)"
         }
     }
 }
